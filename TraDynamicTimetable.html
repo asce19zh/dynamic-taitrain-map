@@ -1,0 +1,344 @@
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <style>
+        .overlay {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+        }
+
+        .overlay button {
+            font: 600 12px/20px 'Helvetica Neue', Arial, Helvetica, sans-serif;
+            background-color: #3386c0;
+            color: #fff;
+            display: inline-block;
+            margin: 0;
+            padding: 10px 20px;
+            border: none;
+            cursor: pointer;
+            border-radius: 3px;
+        }
+
+        .overlay button:hover {
+            background-color: #4ea0da;
+        }
+    </style>
+    <script src='https://api.mapbox.com/mapbox-gl-js/v1.4.1/mapbox-gl.js'></script>
+    <link href='https://api.mapbox.com/mapbox-gl-js/v1.4.1/mapbox-gl.css' rel='stylesheet' />
+</head>
+
+<body>
+
+    <div id='map' style='width: 100%; height: 100%;'></div>
+    <div class='overlay'>
+        <button id='sw'>SwitchMode</button>
+    </div>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <script src='https://npmcdn.com/@turf/turf/turf.min.js'></script>
+    <script>
+        mapboxgl.accessToken = 'pk.eyJ1IjoiZXN0aTIwMDAwNDI1IiwiYSI6ImNrNGI3dDhlNTBhcGkzbGxtNWhmb2xkcjUifQ.0ST3ugkkgVM9jL6uBtoQlg';
+        var map = new mapboxgl.Map({
+            container: 'map',
+            center: [120.58, 24.48],
+            zoom: 0,
+            style: "mapbox://styles/esti20000425/ck4ba5qoz24i11cs6qkb2v9j5"
+
+        });
+
+        /*
+        var size = 100;
+
+        // implementation of CustomLayerInterface to draw a pulsing dot icon on the map
+        // see https://docs.mapbox.com/mapbox-gl-js/api/#customlayerinterface for more info
+        var pulsingDot = {
+            width: size,
+            height: size,
+            data: new Uint8Array(size * size * 4),
+
+            // get rendering context for the map canvas when layer is added to the map
+            onAdd: function () {
+                var canvas = document.createElement('canvas');
+                canvas.width = this.width;
+                canvas.height = this.height;
+                this.context = canvas.getContext('2d');
+            },
+
+            // called once before every frame where the icon will be used
+            render: function () {
+                var duration = 1000;
+                var t = (performance.now() % duration) / duration;
+
+                var radius = (size / 2) * 0.3;
+                var outerRadius = (size / 2) * 0.7 * t + radius;
+                var context = this.context;
+
+                // draw outer circle
+                context.clearRect(0, 0, this.width, this.height);
+                context.beginPath();
+                context.arc(
+                    this.width / 2,
+                    this.height / 2,
+                    outerRadius,
+                    0,
+                    Math.PI * 2
+                );
+                context.fillStyle = 'rgba(255, 200, 200,' + (1 - t) + ')';
+                context.fill();
+
+                // draw inner circle
+                context.beginPath();
+                context.arc(
+                    this.width / 2,
+                    this.height / 2,
+                    radius,
+                    0,
+                    Math.PI * 2
+                );
+                context.fillStyle = 'rgba(255, 100, 100, 1)';
+                context.strokeStyle = 'white';
+                context.lineWidth = 2 + 4 * (1 - t);
+                context.fill();
+                context.stroke();
+
+                // update this image's data with data from the canvas
+                this.data = context.getImageData(
+                    0,
+                    0,
+                    this.width,
+                    this.height
+                ).data;
+
+                // continuously repaint the map, resulting in the smooth animation of the dot
+                map.triggerRepaint();
+
+                // return `true` to let the map know that the image was updated
+                return true;
+            }
+        };
+*/
+/*
+var positions = []; 
+var linestring;
+$.getJSON("station.json", function (result) {
+   
+    
+    for(let i = 0; i < 95; i++)
+    {
+        positions.push([result.features[i].geometry.coordinates[0], result.features[i].geometry.coordinates[1]]);
+        console.log(i, positions[i]);
+    }
+    
+    linestring = turf.lineString(positions);
+    console.log("::" + linestring)
+    
+});
+//var linestring = turf.lineString(positions);
+console.log("::" + linestring)
+*/
+map.on('load', function () {
+    var positions = []; 
+    var linestring;
+    $.getJSON("station.json", function (result) {
+    
+        
+        for(let i = 0; i < 95; i++)
+        {
+            positions.push([result.features[i].geometry.coordinates[0], result.features[i].geometry.coordinates[1]]);
+            console.log(i, positions[i]);
+        }
+        
+        linestring = turf.lineString(positions);
+        console.log("::" + linestring)
+        
+    });
+    console.log("::" + linestring)
+/*   
+    map.addSource("route", {
+        "type": "geojson",
+        "data": {
+            "type": "Feature",
+            "properties": {},
+            "geometry": {
+                "type": "LineString",
+                "coordinates": [
+                    [110, 25],
+                    [130, 10]
+                ]
+            }
+        }
+    });
+*/
+    map.addLayer({
+        "id": "route",
+        "type": "line",
+        "source": {
+            "type": "route",
+            "data": linestring,
+        }, 
+        "layout": {
+            "line-join": "round",
+            "line-cap": "round"
+        },
+        "paint": {
+            "line-color": "#888",
+            "line-width": 8
+        }
+    });
+});
+
+/*
+                map.on('load', function () {
+                    $.getJSON("station.json", function (result) {
+                        for (let i = 0; i < 96; i++) {
+                            map.addLayer({
+                                'id': result["features"][i]["properties"]["站名"],
+                                'type': 'line',
+                                'source': {
+                                    'type': 'geojson',
+                                    'data': {
+                                        'type': 'FeatureCollection',
+                                        'features': [
+                                            {
+                                                'type': 'Feature',
+                                                'properties': {
+                                                    'color': '#F7455D' // red
+                                                },
+                                                'geometry': {
+                                                    'type': 'LineString',
+                                                    'coordinates': [
+                                                        result["features"][i]["properties"]["經度"], result["features"][i]["properties"]["緯度"]
+                                                    ]
+                                                }
+                                            },
+                                            {
+                                                'type': 'Feature',
+                                                'properties': {
+                                                    'color': '#33C9EB' // blue
+                                                },
+                                                'geometry': {
+                                                    'type': 'LineString',
+                                                    'coordinates': [
+                                                        [-122.48393028974533, 37.829471820141016],
+                                                        [-122.48395174741744, 37.82940826466351],
+                                                        [-122.48395174741744, 37.829412501697064],
+                                                        [-122.48423874378203, 37.829357420242125],
+                                                        [-122.48422533273697, 37.829361657278575],
+                                                        [-122.48459815979002, 37.8293425906126],
+                                                        [-122.48458743095398, 37.8293447091313],
+                                                        [-122.4847564101219, 37.82932776098012],
+                                                        [-122.48474299907684, 37.829331998018276],
+                                                        [-122.4849334359169, 37.829298101706186],
+                                                        [-122.48492807149889, 37.82930022022615],
+                                                        [-122.48509705066681, 37.82920488676767],
+                                                        [-122.48509168624878, 37.82920912381288],
+                                                        [-122.48520433902739, 37.82905870855876],
+                                                        [-122.48519897460936, 37.82905870855876],
+                                                        [-122.4854403734207, 37.828594749716714],
+                                                        [-122.48543500900269, 37.82860534241688],
+                                                        [-122.48571664094925, 37.82808206121068],
+                                                        [-122.48570591211319, 37.82809689109353],
+                                                        [-122.4858346581459, 37.82797189627337],
+                                                        [-122.48582661151886, 37.82797825194729],
+                                                        [-122.4859634041786, 37.82788503534145],
+                                                        [-122.48595803976059, 37.82788927246246],
+                                                        [-122.48605459928514, 37.82786596829394]
+                                                    ]
+                                                }
+                                            }
+                                        ]
+                                    }
+        
+                                },
+                                'paint': {
+                                    'line-width': 3,
+                                    // Use a get expression (https://docs.mapbox.com/mapbox-gl-js/style-spec/#expressions-get)
+                                    // to set the line-color to a feature property value.
+                                    'line-color': ['get', 'color']
+                                }
+                            });
+                        };
+                    });
+        
+                });
+ */       
+                /*
+                map.on('load', function () {
+                    map.addImage('pulsing-dot', pulsingDot, { pixelRatio: 2 });
+        
+                    $(document).ready(function () {
+                        $.getJSON('https://api.myjson.com/bins/6fuvc', function (result) {
+        
+                            var bigStation = [""];
+                            for (let i = 0; i < 96; i++) {
+                                map.addLayer({
+                                    'id': result["features"][i]["properties"]["站名"],
+                                    'type': 'symbol',
+                                    'source': {
+                                        'type': 'geojson',
+                                        'data': {
+                                            'type': 'FeatureCollection',
+                                            'features': [
+                                                {
+                                                    'type': 'Feature',
+                                                    'geometry': {
+                                                        'type': 'Point',
+                                                        'coordinates': [result.features[i].geometry.coordinates[0], result.features[i].geometry.coordinates[1]]
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    'layout': {
+                                        'icon-image': 'pulsing-dot'
+                                    }
+                                });
+                            }
+                        });
+                    });
+                });
+                */
+    </script>
+    
+    <script>
+        $("#sw").click(function () {
+            window.alert("switchMode");
+
+            map.on('load', function () {
+                $(document).ready(function () {
+                    $.getJSON("station.json", function (result) {
+                        for (let i = 0; i < 96; i++) {
+                            map.addLayer({
+                                'id': result["features"][i]["properties"]["站名"],
+                                'type': 'line',
+                                'source': {
+                                    'type': 'geojson',
+                                    'data': {
+                                        'type': 'FeatureCollection',
+                                        'properties': {},
+                                        'geometry': {
+                                            'type': 'LineString',
+                                            'coordinates': [result["features"][i]["properties"]["經度"], result["features"][i]["properties"]["緯度"]]
+                                        }
+                                    }
+                                },
+                                'layout': {
+                                    'line-join': 'round',
+                                    'line-cap': 'round'
+                                },
+                                'paint': {
+                                    'line-color': '#888',
+                                    'line-width': 8
+                                }
+                            });
+                        }
+                    });
+                });
+            });
+        })
+    </script>
+
+</body>
+
+</html>
