@@ -38,6 +38,7 @@
             max-width: 200px;
         }
     </style>
+    <title>台灣鐵路列車動態地圖</title>
     <script src='https://api.mapbox.com/mapbox-gl-js/v1.4.1/mapbox-gl.js'></script>
     <link href='https://api.mapbox.com/mapbox-gl-js/v1.4.1/mapbox-gl.css' rel='stylesheet' />
 </head>
@@ -237,19 +238,30 @@
                     traininfo.push({ 'StationID': parseInt(data[idx].StationID), 'StationName': data[idx].StationName.Zh_tw, 'TrainNo': data[idx].TrainNo, 'TrainTypeName': data[idx].TrainTypeName.Zh_tw, 'ScheduledArrivalTime': data[idx].ScheduledArrivalTime, 'DelayTime': data[idx].DelayTime });
                 }
             }).done(() => {
-                for (var sid in statid){
+                var d = new Date();
+                console.log(d);
+                for (var sid in statid) {
                     filtered = traininfo.filter(function (train) {
-                            return train.StationID == statid[sid];
-                        });
+                        return train.StationID == statid[sid];
+                    });
                     var con = "";
-                    if(filtered[0]) con += filtered[0].StationName + "<br>";
-                    for(tinfo in filtered){
-                        con += filtered[tinfo].TrainNo  + "<br>";
+                    if (filtered[0]) con += filtered[0].StationName + "<br>";
+                    for (tinfo in filtered) {
+                        var satime = filtered[tinfo].ScheduledArrivalTime.split(":");
+                        var dtime = new Date();
+                        dtime.setHours(satime[0]);
+                        dtime.setMinutes(satime[1]+filtered[tinfo].DelayTime);
+                        dtime.setSeconds(satime[2]);
+                        console.log(filtered[tinfo].TrainNo + dtime);
+                        var time2 = new Date();
+                        var diff = time2 - dtime;
+                        if(diff <0)
+                            con += filtered[tinfo].TrainNo +" ScheduledArrivalTime:"  + filtered[tinfo].ScheduledArrivalTime +  "<br>";
                         // +" " + filtered[tinfo].TrainTypeName + " "+ filtered[tinfo].ScheduledArrivalTime + " " +filtered[tinfo].DelayTime +
                     }
-                    if(con.length >1){
+                    if (con.length > 1) {
                         var popup = new mapboxgl.Popup({ closeOnClick: false })
-                            .setLngLat([statlon[sid],statlat[sid]])
+                            .setLngLat([statlon[sid], statlat[sid]])
                             .setHTML(con)
                             .addTo(map);
 
@@ -257,11 +269,6 @@
                 }
             });
             var tem = [];
-            tem.push({ 'StationID': 1000, 'direction': 1 });
-            tem.push({ 'StationID': 1200, 'direction': 2 });
-            tem.push({ 'StationID': 1000, 'direction': 8 });
-            tem.push({ 'StationID': 1200, 'direction': 4 });
-            console.log(statid);
             //console.log(traininfo[8].StationID);
             //console.log(typeof(traininfo[0].StationID));
 
