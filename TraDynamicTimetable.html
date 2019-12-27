@@ -24,6 +24,19 @@
         .overlay button:hover {
             background-color: #4ea0da;
         }
+
+        #marker {
+            background-image: url('https://docs.mapbox.com/mapbox-gl-js/assets/washington-monument.jpg');
+            background-size: cover;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        .mapboxgl-popup {
+            max-width: 200px;
+        }
     </style>
     <script src='https://api.mapbox.com/mapbox-gl-js/v1.4.1/mapbox-gl.js'></script>
     <link href='https://api.mapbox.com/mapbox-gl-js/v1.4.1/mapbox-gl.css' rel='stylesheet' />
@@ -148,13 +161,19 @@
                 }
             });
         });
-
+        var statid = [];
+        var statlon = [];
+        var statlat = [];
+        var traininfo = [];
+        var filtered = [];
         map.on('load', function () {
             map.addImage('pulsing-dot', pulsingDot, { pixelRatio: 2 });
             $.getJSON("https://ptx.transportdata.tw/MOTC/v2/Rail/TRA/Station?$format=JSON", function (result) {
                 var location = []
                 for (let i = 0; i <= 240; i++) {
-                    
+                    statid.push(parseInt(result[i]["StationID"]));
+                    statlon.push(result[i]["StationPosition"]["PositionLon"]);
+                    statlat.push(result[i]["StationPosition"]["PositionLat"]);
                     map.addLayer({
                         'id': result[i]["StationName"]["Zh_tw"],
                         'type': 'symbol',
@@ -177,7 +196,7 @@
                             'icon-image': 'pulsing-dot'
                         }
                     });
-                    
+
                     /*
                     map.addLayer({
                         'id': 'route' + i,
@@ -206,8 +225,46 @@
                         }
                     });
                     */
+
+                    /*var popup = new mapboxgl.Popup({ closeOnClick: false })
+                    .setLngLat([statlon[i],statlat[i]])
+                    .setHTML('<span>The stationID is'+ statid[i] +'</span>')
+                    .addTo(map);*/
                 }
             });
+            $.getJSON("https://ptx.transportdata.tw/MOTC/v2/Rail/TRA/LiveBoard?$format=JSON", function (data) {
+                for (var idx in data) {
+                    traininfo.push({ 'StationID': parseInt(data[idx].StationID), 'StationName': data[idx].StationName.Zh_tw, 'TrainNo': data[idx].TrainNo, 'TrainTypeName': data[idx].TrainTypeName.Zh_tw, 'ScheduledArrivalTime': data[idx].ScheduledArrivalTime, 'DelayTime': data[idx].DelayTime });
+                }
+            }).done(() => {
+                for (var sid in statid){
+                    filtered = traininfo.filter(function (train) {
+                            return train.StationID == statid[sid];
+                        });
+                    var con = "";
+                    if(filtered[0]) con += filtered[0].StationName + "<br>";
+                    for(tinfo in filtered){
+                        con += filtered[tinfo].TrainNo  + "<br>";
+                        // +" " + filtered[tinfo].TrainTypeName + " "+ filtered[tinfo].ScheduledArrivalTime + " " +filtered[tinfo].DelayTime +
+                    }
+                    if(con.length >1){
+                        var popup = new mapboxgl.Popup({ closeOnClick: false })
+                            .setLngLat([statlon[sid],statlat[sid]])
+                            .setHTML(con)
+                            .addTo(map);
+
+                    }
+                }
+            });
+            var tem = [];
+            tem.push({ 'StationID': 1000, 'direction': 1 });
+            tem.push({ 'StationID': 1200, 'direction': 2 });
+            tem.push({ 'StationID': 1000, 'direction': 8 });
+            tem.push({ 'StationID': 1200, 'direction': 4 });
+            console.log(statid);
+            //console.log(traininfo[8].StationID);
+            //console.log(typeof(traininfo[0].StationID));
+
         });
 
     </script>
