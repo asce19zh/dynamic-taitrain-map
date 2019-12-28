@@ -144,30 +144,22 @@
             map.addImage('pulsing-dot', pulsingDot, { pixelRatio: 2 });
             $.getJSON("https://ptx.transportdata.tw/MOTC/v2/Rail/TRA/Station?$format=JSON", function (result) {
                 if (swMode == 0) {
-                    for (let i = 0; i <= 240; i++) {
-                        map.setLayoutProperty(result[i]["StationName"]["Zh_tw"], 'visibility', 'visible');
-                        //map.setLayoutProperty('route' + i, 'visibility', 'none');
-                    }
+                    map.setLayoutProperty('stations', 'visibility', 'visible');
                 }
                 if (swMode == 1) {
-                    for (let i = 0; i <= 240; i++) {
-                        map.setLayoutProperty(result[i]["StationName"]["Zh_tw"], 'visibility', 'none');
-                        //map.setLayoutProperty('route' + i, 'visibility', 'visible');
-                    }
+                    map.setLayoutProperty('stations', 'visibility', 'none');
+                    //map.setLayoutProperty('route' + i, 'visibility', 'visible');
                 }
                 if (swMode == 2) {
-                    for (let i = 0; i <= 240; i++) {
-                        map.setLayoutProperty(result[i]["StationName"]["Zh_tw"], 'visibility', 'visible');
-                        //map.setLayoutProperty('route' + i, 'visibility', 'visible');
-                    }
+                    map.setLayoutProperty('stations', 'visibility', 'visible');
+                    //map.setLayoutProperty('route' + i, 'visibility', 'visible');
                 }
             });
         });
         var popup = new Array(241);
         var i = 0;
         var statid = [];
-        var statlon = [];
-        var statlat = [];
+        var statCoordinate = [];
         var traininfo = [];
         var filtered = [];
         var popupcontent = new Array(241);
@@ -178,70 +170,68 @@
                 var location = []
                 for (let i = 0; i <= 240; i++) {
                     statid.push(parseInt(result[i]["StationID"]));
-                    statlon.push(result[i]["StationPosition"]["PositionLon"]);
-                    statlat.push(result[i]["StationPosition"]["PositionLat"]);
+                    statCoordinate.push([result[i]["StationPosition"]["PositionLon"], result[i]["StationPosition"]["PositionLat"]])
                     popup[i] = new mapboxgl.Popup({ closeOnClick: true })
-                            .setLngLat([result[i]["StationPosition"]["PositionLon"], result[i]["StationPosition"]["PositionLat"]])
-                            .setHTML(result[i]["StationName"]["Zh_tw"] + result[i]["StationID"])
-                            .addTo(map);
+                        .setLngLat([result[i]["StationPosition"]["PositionLon"], result[i]["StationPosition"]["PositionLat"]])
+                        .setHTML(result[i]["StationName"]["Zh_tw"] + result[i]["StationID"])
+                        .addTo(map);
                     numOfpopup = i;
-                    map.addLayer({
-                        'id': result[i]["StationName"]["Zh_tw"],
-                        'type': 'symbol',
-                        'source': {
-                            'type': 'geojson',
-                            'data': {
-                                'type': 'FeatureCollection',
-                                'features': [
-                                    {
-                                        'type': 'Feature',
-                                        'geometry': {
-                                            'type': 'Point',
-                                            'coordinates': [result[i]["StationPosition"]["PositionLon"], result[i]["StationPosition"]["PositionLat"]],
-                                        }
-                                    }
+                }
+                const allPoints = statCoordinate.map(point => ({
+                    type: 'Feature',
+                    geometry: {
+                        type: 'Point',
+                        coordinates: point
+                    }
+                }));
+                map.addLayer({
+                    'id': "stations",
+                    'type': 'symbol',
+                    'source': {
+                        'type': 'geojson',
+                        'data': {
+                            'type': 'FeatureCollection',
+                            'features': allPoints
+                        }
+                    },
+                    'layout': {
+                        'icon-image': 'pulsing-dot'
+                    }
+                });
+
+                /*
+                map.addLayer({
+                    'id': 'route' + i,
+                    'type': 'line',
+                    'source': {
+                        'type': 'geojson',
+                        'data': {
+                            'type': 'Feature',
+                            'properties': {},
+                            'geometry': {
+                                'type': 'LineString',
+                                'coordinates': [
+                                    [result[i]["StationPosition"]["PositionLon"], result[i]["StationPosition"]["PositionLat"]],
+                                    [result[i + 1]["StationPosition"]["PositionLon"], result[i + 1]["StationPosition"]["PositionLat"]]
                                 ]
                             }
-                        },
-                        'layout': {
-                            'icon-image': 'pulsing-dot'
                         }
-                    });
+                    },
+                    'layout': {
+                        'line-join': 'round',
+                        'line-cap': 'round'
+                    },
+                    'paint': {
+                        'line-color': 'blue',
+                        'line-width': 5
+                    }
+                });
+                */
 
-                    /*
-                    map.addLayer({
-                        'id': 'route' + i,
-                        'type': 'line',
-                        'source': {
-                            'type': 'geojson',
-                            'data': {
-                                'type': 'Feature',
-                                'properties': {},
-                                'geometry': {
-                                    'type': 'LineString',
-                                    'coordinates': [
-                                        [result[i]["StationPosition"]["PositionLon"], result[i]["StationPosition"]["PositionLat"]],
-                                        [result[i + 1]["StationPosition"]["PositionLon"], result[i + 1]["StationPosition"]["PositionLat"]]
-                                    ]
-                                }
-                            }
-                        },
-                        'layout': {
-                            'line-join': 'round',
-                            'line-cap': 'round'
-                        },
-                        'paint': {
-                            'line-color': 'blue',
-                            'line-width': 5
-                        }
-                    });
-                    */
-
-                    /*var popup = new mapboxgl.Popup({ closeOnClick: false })
-                    .setLngLat([statlon[i],statlat[i]])
-                    .setHTML('<span>The stationID is'+ statid[i] +'</span>')
-                    .addTo(map);*/
-                }
+                /*var popup = new mapboxgl.Popup({ closeOnClick: false })
+                .setLngLat([statlon[i],statlat[i]])
+                .setHTML('<span>The stationID is'+ statid[i] +'</span>')
+                .addTo(map);*/
             });
 
             var tem = [];
@@ -285,7 +275,7 @@
                     if (con.length > 1) {
                         popupcontent[i] = sid + "&" + con;
                         /*popup[i] = new mapboxgl.Popup({ closeOnClick: false })
-                            .setLngLat([statlon[sid], statlat[sid]])
+                            .setLngLat([statCoordinate[sid][0], statCoordinate[sid][1]])
                             .setHTML(con)
                             .addTo(map);*/
                         numOfpopup = i;
