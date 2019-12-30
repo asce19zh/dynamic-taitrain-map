@@ -52,7 +52,23 @@
     </div>
     <script src='https://unpkg.com/@turf/turf'></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <script type="text/javascript" src="sha1.js"></script>
     <script>
+        function GetAuthorizationHeader() {
+            var AppID = 'b9b15e225bea43a689a17d266daf8940';
+            var AppKey = 'azNwJbloL7XJMBwWCAz4H29WXlk';
+
+            var GMTString = new Date().toGMTString();
+            var ShaObj = new jsSHA('SHA-1', 'TEXT');
+            ShaObj.setHMACKey(AppKey, 'TEXT');
+            ShaObj.update('x-date: ' + GMTString);
+            var HMAC = ShaObj.getHMAC('B64');
+            var Authorization = 'hmac username=\"' + AppID + '\", algorithm=\"hmac-sha1\", headers=\"x-date\", signature=\"' + HMAC + '\"';
+
+            return { 'Authorization': Authorization, 'X-Date': GMTString /*,'Accept-Encoding': 'gzip'*/ }; //如果要將js運行在伺服器，可額外加入 'Accept-Encoding': 'gzip'，要求壓縮以減少網路傳輸資料量
+        }
+        $.ajaxSetup({
+    headers : GetAuthorizationHeader() });
         mapboxgl.accessToken = 'pk.eyJ1IjoiZXN0aTIwMDAwNDI1IiwiYSI6ImNrNGI3dDhlNTBhcGkzbGxtNWhmb2xkcjUifQ.0ST3ugkkgVM9jL6uBtoQlg';
         var map = new mapboxgl.Map({
             container: 'map',
@@ -208,7 +224,7 @@
                     }
                 });
                 gettraindata();
-                
+
                 /*
                 map.addLayer({
                     'id': 'route' + i,
@@ -253,9 +269,9 @@
         function animateMarker(timestamp) {
             var startIDidx, destIDidx;
             var startlon, startlat, destlon, destlat, desttime = new Date(), starttime = new Date(), nowtime1 = new Date();
-            for(let train in anitraininfo){
+            for (let train in anitraininfo) {
 
-                if(parseInt(anitraininfo[train].lastStopStationID) != 0){
+                if (parseInt(anitraininfo[train].lastStopStationID) != 0) {
                     startIDidx = $.inArray(parseInt(anitraininfo[train].lastStopStationID), statid);
                     startlon = statInfo[startIDidx][1];
                     startlat = statInfo[startIDidx][2];
@@ -265,11 +281,11 @@
                     var temptime1 = anitraininfo[train].TimeDepartFromLastStation.split(":");
                     starttime.setHours(temptime1[0]);
                     starttime.setMinutes(temptime1[1]);
-                    starttime.setSeconds(0);    
+                    starttime.setSeconds(0);
                     var temptime2 = anitraininfo[train].ArrivalTime.split(":");
                     desttime.setHours(temptime2[0]);
                     desttime.setMinutes(temptime2[1]);
-                    desttime.setSeconds(0);                   
+                    desttime.setSeconds(0);
                     console.log(anitraininfo[train].lastStopStationID);
                     console.log(anitraininfo[train].TimeDepartFromLastStation);
                     console.log(anitraininfo[train].ArrivalTime);
@@ -278,21 +294,22 @@
             }
             var diffx = destlon - startlon, diffy = destlat - startlat;
             var ratio = (nowtime1 - starttime) / (desttime - starttime);
-            if(ratio < 0){
+            if (ratio < 0) {
                 marker.setLngLat([
-                startlon,
-                startlat
-            ]);
+                    startlon,
+                    startlat
+                ]);
             }
-            else{
+            else {
                 marker.setLngLat([
-                startlon+(ratio) * diffx,
-                startlat+(ratio) * diffy
-            ]);
+                    startlon + (ratio) * diffx,
+                    startlat + (ratio) * diffy
+                ]);
             }
             console.log(nowtime1);
-            console.log((nowtime1 - starttime)+ ", " + (desttime - starttime));
+            console.log((nowtime1 - starttime) + ", " + (desttime - starttime));
             console.log(ratio);
+
             // Update the data to a new position based on the animation timestamp. The
             // divisor in the expression `timestamp / 1000` controls the animation speed.
 
@@ -302,6 +319,8 @@
             marker.addTo(map);
 
             // Request the next frame of the animation.
+            if(ratio == 1)
+                gettraindata();
             requestAnimationFrame(animateMarker);
         }
 
@@ -387,10 +406,10 @@
                     }
 
                 }
-            }).done (() => {
+            }).done(() => {
                 requestAnimationFrame(animateMarker);
             });
-            
+
         }
         map.on('click', 'stations', function (e) {
             var stid = e.features[0].properties.description;
@@ -423,6 +442,72 @@
         map.on('mouseleave', 'places', function () {
             map.getCanvas().style.cursor = '';
         });
+        /*
+
+        function animateMarker(timestamp) {
+            var startIDidx, destIDidx;
+            var startlon = new Array(anitraininfo.length), startlat = new Array(anitraininfo.length), destlon = new Array(anitraininfo.length), destlat = new Array(anitraininfo.length);
+            var desttime = new Array(anitraininfo.length), starttime = new Array(anitraininfo.length), nowtime1 = new Array(anitraininfo.length);
+            for(let i = 0;i< anitraininfo.length;i++){
+                desttime[i] = new Date();
+                starttime[i] = new Date();
+                nowtime1[i] = new Date();
+            }
+            var n = 0;
+            for(let train in anitraininfo){
+
+                if(parseInt(anitraininfo[train].lastStopStationID) != 0){
+                    startIDidx[n] = $.inArray(parseInt(anitraininfo[train].lastStopStationID), statid);
+                    startlon[n] = statInfo[startIDidx][1];
+                    startlat[n] = statInfo[startIDidx][2];
+                    destIDidx[n] = $.inArray(parseInt(anitraininfo[train].nextStopStationID), statid);
+                    destlon[n] = statInfo[destIDidx][1];
+                    destlat[n] = statInfo[destIDidx][2];
+                    var temptime1 = anitraininfo[train].TimeDepartFromLastStation.split(":");
+                    starttime[n].setHours(temptime1[0]);
+                    starttime[n].setMinutes(temptime1[1]);
+                    starttime[n].setSeconds(0);
+                    var temptime2 = anitraininfo[train].ArrivalTime.split(":");
+                    desttime[n].setHours(temptime2[0]);
+                    desttime[n].setMinutes(temptime2[1]);
+                    desttime[n].setSeconds(0);
+                    console.log(anitraininfo[train].lastStopStationID);
+                    console.log(anitraininfo[train].TimeDepartFromLastStation);
+                    console.log(anitraininfo[train].ArrivalTime);
+                    break;
+                    var diffx = destlon - startlon, diffy = destlat - startlat;
+                    var ratio = (nowtime1 - starttime) / (desttime - starttime);
+                    if(ratio < 0){
+                        marker.setLngLat([
+                        startlon,
+                        startlat
+                    ]);
+                    }
+                    else{
+                        marker.setLngLat([
+                        startlon+(ratio) * diffx,
+                        startlat+(ratio) * diffy
+                    ]);
+                    }
+                }
+                n++;
+            }
+            console.log(nowtime1);
+            console.log((nowtime1 - starttime)+ ", " + (desttime - starttime));
+            console.log(ratio);
+            // Update the data to a new position based on the animation timestamp. The
+            // divisor in the expression `timestamp / 1000` controls the animation speed.
+
+            //console.log(Math.cos(timestamp / 1000) * radius, Math.sin(timestamp / 1000) * radius)
+
+            // Ensure it's added to the map. This is safe to call if it's already added.
+            marker.addTo(map);
+
+            // Request the next frame of the animation.
+            requestAnimationFrame(animateMarker);
+        }
+
+        */
     </script>
 </body>
 
