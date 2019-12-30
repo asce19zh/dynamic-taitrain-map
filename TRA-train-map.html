@@ -173,8 +173,8 @@
     <script type="text/javascript" src="sha1.js"></script>
     <script>
         function GetAuthorizationHeader() {
-            var AppID = 'b9b15e225bea43a689a17d266daf8940';
-            var AppKey = 'azNwJbloL7XJMBwWCAz4H29WXlk';
+            var AppID = 'e40b5c87f260461199b9099fb4e1f1de';
+            var AppKey = 'V_poGyXPn2jaGenhlslYb0QL99o';
 
             var GMTString = new Date().toGMTString();
             var ShaObj = new jsSHA('SHA-1', 'TEXT');
@@ -395,11 +395,9 @@
                         dtime.setHours(satime[0]);
                         dtime.setMinutes(satime[1]);
                         dtime.setSeconds(satime[2]);
-                        //console.log(filtered[tinfo].TrainNo + dtime);
                         var diff = nowtime - dtime;
                         if (diff < 0)
                             con += "<tr><td>" + filtered[tinfo].TrainNo + "</td><td>" + filtered[tinfo].ScheduledArrivalTime + "</td><tr>";
-                        // +" " + filtered[tinfo].TrainTypeName + " "+ filtered[tinfo].ScheduledArrivalTime + " " +filtered[tinfo].DelayTime +
                     }
                     con += "</tbody></table>";
                     if (con.length > 1) {
