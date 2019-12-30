@@ -2,6 +2,8 @@
 
 <head>
     <meta charset="utf-8">
+    <link href="https://fonts.googleapis.com/css?family=Noto+Sans+TC&display=swap" rel="stylesheet">
+
     <style>
         .overlay {
             position: absolute;
@@ -24,18 +26,135 @@
         .overlay button:hover {
             background-color: #4ea0da;
         }
+        a {
+            color:white;
+            text-decoration: none;
+        }
 
-        #marker {
-            background-image: url('https://docs.mapbox.com/mapbox-gl-js/assets/washington-monument.jpg');
+
+        #markerc {
+            background-image: url('http://pic.90sjimg.com/design/00/67/59/63/58ed82ba9b872.png');
             background-size: cover;
-            width: 50px;
-            height: 50px;
+            width: 70px;
+            height: 70px;
             border-radius: 50%;
             cursor: pointer;
         }
 
         .mapboxgl-popup {
             max-width: 200px;
+        }
+
+        table {
+            border-spacing: 1;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            border: soild white;
+            width: 100%;
+            margin: 0 auto;
+            position: relative;
+        }
+
+        table * {
+            position: relative;
+        }
+        thead{
+            color:white;
+        }
+        table td,
+        table th {
+            padding-left: 8px;
+        }
+
+        table thead tr {
+            height: 60px;
+            background: #36304a;
+        }
+
+        table tbody tr {
+            height: 50px;
+        }
+
+        table tbody tr:last-child {
+            border: 0;
+        }
+
+        table td,
+        table th {
+            text-align: left;
+        }
+
+        table td.l,
+        table th.l {
+            text-align: right;
+        }
+
+        table td.c,
+        table th.c {
+            text-align: center;
+        }
+
+        table td.r,
+        table th.r {
+            text-align: center;
+        }
+
+
+        .table100-head th {
+            font-family: OpenSans-Regular;
+            font-size: 18px;
+            color: #fff;
+            line-height: 1.2;
+            font-weight: unset;
+        }
+
+        tbody tr:nth-child(even) {
+            background-color: #f5f5f5;
+        }
+
+        tbody tr {
+            font-family: OpenSans-Regular;
+            font-size: 15px;
+            color: #808080;
+            line-height: 1.2;
+            font-weight: unset;
+        }
+
+        tbody tr:hover {
+            color: #555555;
+            background-color: #f5f5f5;
+            cursor: pointer;
+        }
+
+        .column1 {
+            width: 260px;
+            padding-left: 40px;
+        }
+
+        .column2 {
+            width: 160px;
+        }
+
+        .column3 {
+            width: 245px;
+        }
+
+        .column4 {
+            width: 110px;
+            text-align: right;
+        }
+
+        .column5 {
+            width: 170px;
+            text-align: right;
+        }
+
+        .column6 {
+            width: 222px;
+            text-align: right;
+            padding-right: 62px;
         }
     </style>
     <title>台灣鐵路列車動態地圖</title>
@@ -47,8 +166,7 @@
 
     <div id='map' style='width: 100%; height: 100%;'></div>
     <div class='overlay'>
-        <button id='sw'>SwitchMode</button>
-        <button id='update'>UpdateInfo</button>
+        <button id='docu'><a href="臺鐵列車動態地圖-00757006+00757043.pptx">document</a></button>
     </div>
     <script src='https://unpkg.com/@turf/turf'></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
@@ -68,21 +186,19 @@
             return { 'Authorization': Authorization, 'X-Date': GMTString /*,'Accept-Encoding': 'gzip'*/ }; //如果要將js運行在伺服器，可額外加入 'Accept-Encoding': 'gzip'，要求壓縮以減少網路傳輸資料量
         }
         $.ajaxSetup({
-    headers : GetAuthorizationHeader() });
+            headers: GetAuthorizationHeader()
+        });
         mapboxgl.accessToken = 'pk.eyJ1IjoiZXN0aTIwMDAwNDI1IiwiYSI6ImNrNGI3dDhlNTBhcGkzbGxtNWhmb2xkcjUifQ.0ST3ugkkgVM9jL6uBtoQlg';
         var map = new mapboxgl.Map({
             container: 'map',
-            center: [120.58, 24.48],
-            zoom: 8,
+            center: [121.5, 25.04],
+            zoom: 11.5,
             style: 'mapbox://styles/esti20000425/ck4ba5qoz24i11cs6qkb2v9j5'
 
         });
         var nowtime = new Date();
         var swMode = 0;
         var size = 100;
-
-        // implementation of CustomLayerInterface to draw a pulsing dot icon on the map
-        // see https://docs.mapbox.com/mapbox-gl-js/api/#customlayerinterface for more info
         var pulsingDot = {
             width: size,
             height: size,
@@ -148,31 +264,6 @@
                 return true;
             }
         };
-        /*
-        $("#update").click(function(){
-            $.getJSON("", function(trains){
-
-            })
-        })
-        */
-
-        $("#sw").click(function () {
-            swMode = (swMode + 1) % 3;
-            map.addImage('pulsing-dot', pulsingDot, { pixelRatio: 2 });
-            $.getJSON("https://ptx.transportdata.tw/MOTC/v2/Rail/TRA/Station?$format=JSON", function (result) {
-                if (swMode == 0) {
-                    map.setLayoutProperty('stations', 'visibility', 'visible');
-                }
-                if (swMode == 1) {
-                    map.setLayoutProperty('stations', 'visibility', 'none');
-                    //map.setLayoutProperty('route' + i, 'visibility', 'visible');
-                }
-                if (swMode == 2) {
-                    map.setLayoutProperty('stations', 'visibility', 'visible');
-                    //map.setLayoutProperty('route' + i, 'visibility', 'visible');
-                }
-            });
-        });
         var popup = new Array(241);
         var i = 0;
         var statid = [];
@@ -191,12 +282,12 @@
                     if (parseInt(result[i]["StationID"]) != 1001) {
                         statid.push(parseInt(result[i]["StationID"]));
                         statInfo.push([parseInt(result[i]["StationID"]), result[i]["StationPosition"]["PositionLon"], result[i]["StationPosition"]["PositionLat"]]);
+                        new mapboxgl.Popup({ closeOnClick: true })
+                            .setLngLat([result[i]["StationPosition"]["PositionLon"], result[i]["StationPosition"]["PositionLat"]])
+                            .setHTML(result[i]["StationName"]["Zh_tw"] + result[i]["StationID"])
+                            .addTo(map);
+                        numOfpopup = i;
                     }
-                    new mapboxgl.Popup({ closeOnClick: true })
-                        .setLngLat([result[i]["StationPosition"]["PositionLon"], result[i]["StationPosition"]["PositionLat"]])
-                        .setHTML(result[i]["StationName"]["Zh_tw"] + result[i]["StationID"])
-                        .addTo(map);
-                    numOfpopup = i;
                 }
                 const allPoints = statInfo.map(point => ({
                     'type': 'Feature',
@@ -225,48 +316,13 @@
                 });
                 gettraindata();
 
-                /*
-                map.addLayer({
-                    'id': 'route' + i,
-                    'type': 'line',
-                    'source': {
-                        'type': 'geojson',
-                        'data': {
-                            'type': 'Feature',
-                            'properties': {},
-                            'geometry': {
-                                'type': 'LineString',
-                                'coordinates': [
-                                    [result[i]["StationPosition"]["PositionLon"], result[i]["StationPosition"]["PositionLat"]],
-                                    [result[i + 1]["StationPosition"]["PositionLon"], result[i + 1]["StationPosition"]["PositionLat"]]
-                                ]
-                            }
-                        }
-                    },
-                    'layout': {
-                        'line-join': 'round',
-                        'line-cap': 'round'
-                    },
-                    'paint': {
-                        'line-color': 'blue',
-                        'line-width': 5
-                    }
-                });
-                */
-
-                /*var popup = new mapboxgl.Popup({ closeOnClick: false })
-                .setLngLat([statlon[i],statlat[i]])
-                .setHTML('<span>The stationID is'+ statid[i] +'</span>')
-                .addTo(map);*/
             });
-
-            var tem = [];
-            //console.log(traininfo[8].StationID);
-            //console.log(typeof(traininfo[0].StationID));
-
         });
-        var marker = new mapboxgl.Marker();
+        var el = document.createElement('div');
+        el.id = 'markerc';
+        var marker = new mapboxgl.Marker(el);
         function animateMarker(timestamp) {
+
             var startIDidx, destIDidx;
             var startlon, startlat, destlon, destlat, desttime = new Date(), starttime = new Date(), nowtime1 = new Date();
             for (let train in anitraininfo) {
@@ -299,6 +355,7 @@
                     startlon,
                     startlat
                 ]);
+
             }
             else {
                 marker.setLngLat([
@@ -306,33 +363,18 @@
                     startlat + (ratio) * diffy
                 ]);
             }
-            console.log(nowtime1);
-            console.log((nowtime1 - starttime) + ", " + (desttime - starttime));
-            console.log(ratio);
-
-            // Update the data to a new position based on the animation timestamp. The
-            // divisor in the expression `timestamp / 1000` controls the animation speed.
-
-            //console.log(Math.cos(timestamp / 1000) * radius, Math.sin(timestamp / 1000) * radius)
-
-            // Ensure it's added to the map. This is safe to call if it's already added.
             marker.addTo(map);
 
             // Request the next frame of the animation.
-            if(ratio == 1)
+            if (ratio == 1)
                 gettraindata();
             requestAnimationFrame(animateMarker);
         }
 
         // Start the animation.
 
-        setInterval(gettraindata, 60000);
+        setInterval(gettraindata, 120000);
         function gettraindata() {
-            /*if(popup){
-                for (let q = 0; q <= numOfpopup; q++) {
-                    popup[q].remove();
-                }
-            }*/
             traininfo = [];
             $.getJSON("https://ptx.transportdata.tw/MOTC/v2/Rail/TRA/LiveBoard?$format=JSON", function (data) {
                 for (var idx in data) {
@@ -345,7 +387,8 @@
                         return train.StationID == statid[sid];
                     });
                     let con = "";
-                    if (filtered[0]) con += filtered[0].StationName + "<br>";
+                    if (filtered[0]) con += "<h2>" + filtered[0].StationName + "</h2>";
+                    con += "<table><thead><tr><td>trainNo</td><td>ArrivalTime</td></tr></thead><tbody>";
                     for (tinfo in filtered) {
                         var satime = filtered[tinfo].ScheduledArrivalTime.split(":");
                         var dtime = new Date();
@@ -355,15 +398,12 @@
                         //console.log(filtered[tinfo].TrainNo + dtime);
                         var diff = nowtime - dtime;
                         if (diff < 0)
-                            con += filtered[tinfo].TrainNo + " ScheduledArrivalTime:" + filtered[tinfo].ScheduledArrivalTime + "<br>";
+                            con += "<tr><td>" + filtered[tinfo].TrainNo + "</td><td>" + filtered[tinfo].ScheduledArrivalTime + "</td><tr>";
                         // +" " + filtered[tinfo].TrainTypeName + " "+ filtered[tinfo].ScheduledArrivalTime + " " +filtered[tinfo].DelayTime +
                     }
+                    con += "</tbody></table>";
                     if (con.length > 1) {
                         popupcontent[i] = statid[sid] + "&" + con;
-                        /*popup[i] = new mapboxgl.Popup({ closeOnClick: false })
-                            .setLngLat([statInfo[sid][1], statInfo[sid][2]])
-                            .setHTML(con)
-                            .addTo(map);*/
                         numOfpopup = i;
                         i++;
 
@@ -373,7 +413,7 @@
             });
             anitraininfo = [];
 
-            $.getJSON("https://ptx.transportdata.tw/MOTC/v3/Rail/TRA/DailyTrainTimetable/Today?$format=JSON", function (data2) {
+            $.getJSON("https://ptx.transportdata.tw/MOTC/v3/Rail/TRA/DailyTrainTimetable/Today?$top=20&$format=JSON", function (data2) {
                 for (idx2 in data2.TrainTimetables) {
                     //console.log(data2.TrainTimetables[idx2].TrainInfo.TrainNo);
                     for (idx3 in data2.TrainTimetables[idx2].StopTimes) {
@@ -417,10 +457,7 @@
             console.log(stid);
             // Ensure that if the map is zoomed out such that multiple
             // copies of the feature are visible, the popup appears
-            // over the copy being pointed to.
-            /*while (Math.abs(e.lngLat.lng - coordinates[0]) > 180) {
-                coordinates[0] += e.lngLat.lng > coordinates[0] ? 360 : -360;
-            }*/
+
             for (popcon in popupcontent) {
                 var temp = popupcontent[popcon].split("&");
                 if (temp[0] == stid) {
@@ -434,80 +471,15 @@
         });
 
         // Change the cursor to a pointer when the mouse is over the places layer.
-        map.on('mouseenter', 'places', function () {
+        map.on('mouseenter', 'stations', function () {
             map.getCanvas().style.cursor = 'pointer';
         });
 
         // Change it back to a pointer when it leaves.
-        map.on('mouseleave', 'places', function () {
+        map.on('mouseleave', 'stations', function () {
             map.getCanvas().style.cursor = '';
         });
-        /*
-
-        function animateMarker(timestamp) {
-            var startIDidx, destIDidx;
-            var startlon = new Array(anitraininfo.length), startlat = new Array(anitraininfo.length), destlon = new Array(anitraininfo.length), destlat = new Array(anitraininfo.length);
-            var desttime = new Array(anitraininfo.length), starttime = new Array(anitraininfo.length), nowtime1 = new Array(anitraininfo.length);
-            for(let i = 0;i< anitraininfo.length;i++){
-                desttime[i] = new Date();
-                starttime[i] = new Date();
-                nowtime1[i] = new Date();
-            }
-            var n = 0;
-            for(let train in anitraininfo){
-
-                if(parseInt(anitraininfo[train].lastStopStationID) != 0){
-                    startIDidx[n] = $.inArray(parseInt(anitraininfo[train].lastStopStationID), statid);
-                    startlon[n] = statInfo[startIDidx][1];
-                    startlat[n] = statInfo[startIDidx][2];
-                    destIDidx[n] = $.inArray(parseInt(anitraininfo[train].nextStopStationID), statid);
-                    destlon[n] = statInfo[destIDidx][1];
-                    destlat[n] = statInfo[destIDidx][2];
-                    var temptime1 = anitraininfo[train].TimeDepartFromLastStation.split(":");
-                    starttime[n].setHours(temptime1[0]);
-                    starttime[n].setMinutes(temptime1[1]);
-                    starttime[n].setSeconds(0);
-                    var temptime2 = anitraininfo[train].ArrivalTime.split(":");
-                    desttime[n].setHours(temptime2[0]);
-                    desttime[n].setMinutes(temptime2[1]);
-                    desttime[n].setSeconds(0);
-                    console.log(anitraininfo[train].lastStopStationID);
-                    console.log(anitraininfo[train].TimeDepartFromLastStation);
-                    console.log(anitraininfo[train].ArrivalTime);
-                    break;
-                    var diffx = destlon - startlon, diffy = destlat - startlat;
-                    var ratio = (nowtime1 - starttime) / (desttime - starttime);
-                    if(ratio < 0){
-                        marker.setLngLat([
-                        startlon,
-                        startlat
-                    ]);
-                    }
-                    else{
-                        marker.setLngLat([
-                        startlon+(ratio) * diffx,
-                        startlat+(ratio) * diffy
-                    ]);
-                    }
-                }
-                n++;
-            }
-            console.log(nowtime1);
-            console.log((nowtime1 - starttime)+ ", " + (desttime - starttime));
-            console.log(ratio);
-            // Update the data to a new position based on the animation timestamp. The
-            // divisor in the expression `timestamp / 1000` controls the animation speed.
-
-            //console.log(Math.cos(timestamp / 1000) * radius, Math.sin(timestamp / 1000) * radius)
-
-            // Ensure it's added to the map. This is safe to call if it's already added.
-            marker.addTo(map);
-
-            // Request the next frame of the animation.
-            requestAnimationFrame(animateMarker);
-        }
-
-        */
+ 
     </script>
 </body>
 
