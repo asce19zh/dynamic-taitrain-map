@@ -459,7 +459,7 @@
             for (popcon in popupcontent) {
                 var temp = popupcontent[popcon].split("&");
                 if (temp[0] == stid) {
-                    new mapboxgl.Popup()
+                    new mapboxgl.Popup({offset:25})
                         .setLngLat([statInfo[idx][1], statInfo[idx][2]])
                         .setHTML(temp[1])
                         .addTo(map);
